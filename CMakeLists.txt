@@ -29,11 +29,18 @@ pad_number(VERSION_MINOR 3)
 pad_number(VERSION_REVISION 3)
 set(LIBJPEG_TURBO_VERSION_NUMBER ${VERSION_MAJOR}${VERSION_MINOR}${VERSION_REVISION})
 
-if(NOT WIN32)
-  message(FATAL_ERROR "Platform not supported by this build system.  Use autotools instead.")
-endif()
-
 string(TIMESTAMP BUILD "%Y%m%d")
+
+if(UNIX)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lm")
+
+    if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+        add_definitions(-DSIZEOF_SIZE_T=8)
+    else()
+        add_definitions(-DSIZEOF_SIZE_T=4)
+    endif()
+endif()
 
 # This does nothing except when using MinGW.  CMAKE_BUILD_TYPE has no meaning
 # in Visual Studio, and it always defaults to Debug when using NMake.
@@ -311,9 +318,9 @@ if(WITH_TURBOJPEG)
 endif()
 
 if(WITH_12BIT)
-  set(COMPILE_FLAGS "-DGIF_SUPPORTED -DPPM_SUPPORTED -DUSE_SETMODE")
+  set(COMPILE_FLAGS "-DGIF_SUPPORTED -DPPM_SUPPORTED")
 else()
-  set(COMPILE_FLAGS "-DBMP_SUPPORTED -DGIF_SUPPORTED -DPPM_SUPPORTED -DTARGA_SUPPORTED -DUSE_SETMODE")
+  set(COMPILE_FLAGS "-DBMP_SUPPORTED -DGIF_SUPPORTED -DPPM_SUPPORTED -DTARGA_SUPPORTED")
   set(CJPEG_BMP_SOURCES rdbmp.c rdtarga.c)
   set(DJPEG_BMP_SOURCES wrbmp.c wrtarga.c)
 endif()
@@ -331,7 +338,10 @@ if(ENABLE_STATIC)
 
   add_executable(jpegtran-static jpegtran.c cdjpeg.c rdswitch.c transupp.c)
   target_link_libraries(jpegtran-static jpeg-static)
-  set_property(TARGET jpegtran-static PROPERTY COMPILE_FLAGS "-DUSE_SETMODE")
+endif()
+
+if (!UNIX)
+    add_definitions(-DUSE_SETMODE)
 endif()
 
 add_executable(rdjpgcom rdjpgcom.c)

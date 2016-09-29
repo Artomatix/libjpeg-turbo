@@ -14,6 +14,11 @@
 
 #include "cdjpeg.h"             /* Common decls for cjpeg/djpeg applications */
 #include <ctype.h>              /* to declare isupper(), tolower() */
+
+#if defined(__linux__) || defined(__unix__)
+#undef USE_SETMODE
+#endif
+
 #ifdef USE_SETMODE
 #include <fcntl.h>              /* to declare setmode()'s parameter macros */
 /* If you have setmode() but not <io.h>, just delete this line: */
